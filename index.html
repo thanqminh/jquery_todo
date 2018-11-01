@@ -5,21 +5,114 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 </head>
 <body>
-  <div>Todo list: 
-    <input type='text' id='username' id='txt_username' />
-    <input type='text' id='password' id='txt_password' />  
-    <ul id='ul_list'>
-      
-    </ul>
-    <ul id='ul_todo'>
-    </ul>
-    
+  <div>
+    <h1> Todo list: </h1>
+    <div id='authentication'>
+      username: <input type='text' id='txt_username' /> <br />
+      password: <input type='text' id='txt_password' /> <br />
+      <input type='button' id='btn_login' value='Log in' onclick="login()" />
+      <input type='button' id='btn_signup' value='Sign up' onclick="signup()"/>
+    </div>
+    <br />
+    <div id='logged' style="display: block">
+      <input type='text' id='txt_todolist' placeholder="New Todo List" />
+      <input type='button' id='btn_create_todolist' value='Create' onclick="createTodoList()"/>
+      <br />
+      List of user's list:
+      <ul id='ul_list'>
+        
+      </ul>
+      <br />
+      Selected todo: <span id='selected_list'></span> 
+      <input type='hidden' id='selected_id' />
+      <input type='text' id='txt_todo' placeholder="New Todo" />
+      <input type='button' id='btn_create_todo' value='Create' onclick="createTodo()" />
+      <br />
+      List of todo in selected list:
+      <ul id='ul_todo'>
+      </ul>
+    </div>
+
   </div>
   <script type='text/javascript'>
       $(document).ready(function(){
 
 
       });
+
+      function signup() {
+        username = $('#txt_username').val();
+        password = $('#txt_password').val();
+        body = JSON.stringify({email: username, password: password});
+        console.log(body);
+        var settings = {
+          "async": true,
+          "crossDomain": true,
+          "url": "http://herokutuan.herokuapp.com/auth",
+          "method": "POST",
+          "headers": {
+            "Content-Type": "application/json"
+          },
+          "processData": false,
+          "data": body
+        };
+        $.ajax(settings).done(function (response) {
+          console.log(response);
+        });
+      }
+
+      function login() {
+        username = $('#txt_username').val();
+        password = $('#txt_password').val();
+        body = JSON.stringify({email: username, password: password});
+        var settings = {
+          "async": true,
+          "crossDomain": true,
+          "url": "http://herokutuan.herokuapp.com/auth/sign_in",
+          "method": "POST",
+          "headers": {
+            "email": username,
+            "password": password,
+            "Content-Type": "application/json"
+          },
+          "processData": false,
+          "data": body
+        }
+
+        $.ajax(settings).done(function (response, textStatus, request) {
+          console.log(response);
+          var user = { 
+            uid:request.getResponseHeader('uid'), 
+            token: request.getResponseHeader('access-token'),
+            client: request.getResponseHeader('client'),
+          };
+          sessionStorage.setItem('user', JSON.stringify(user));
+          var obj = JSON.parse(sessionStorage.user);
+        });
+      }
+
+      function createTodoList() {
+        //take client, access-token, uid from sessionStorage
+        var user = JSON.parse(sessionStorage.user);
+        var settings = {
+          "async": true,
+          "crossDomain": true,
+          "url": "https://todo-js-be.herokuapp.com/todo_lists",
+          "method": "POST",
+          "headers": {
+            "Client": user.client,
+            "Access-Token": user.token,
+            "Uid": user.uid,
+            "Content-Type": "application/json"
+          },
+          "processData": false,
+          "data": "{\n\t\"name\": \"abc\"\n}"
+        }
+
+        $.ajax(settings).done(function (response) {
+          console.log(response);
+        });
+      }
     </script>
 </body>
 </html>
